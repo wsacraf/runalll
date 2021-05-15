@@ -1,3 +1,4 @@
+const { json } = require('mathjs');
 const gp = require('./Graph.js');
 
 var data = require('./tasks.json');
@@ -12,7 +13,7 @@ compGraph.SetNodeParents();
 
 //gets the roots index
 let compRoot = compGraph.FindRoots();
-
+console.log("componenets: " + JSON.stringify(compRoot))
 
 
 /* We take the array of components and the name of
@@ -20,7 +21,7 @@ a component and returns an array of all sections of that particular component */
 
 function getSection(data, componentKey) {
     let components = data['Components'];
-    //console.log('data   ' + JSON.stringify(data));
+    //  console.log('data   ' + JSON.stringify(data));
     let i = 0, found = false;
     while (i < components.length & !found) {
         if (components[i].name == componentKey) {
@@ -64,109 +65,119 @@ function getSection(data, componentKey) {
 } */
 
 // ------------ Execution ----------------
-function Executor(array) {
+Executor = async function (array) {
     let subArray = new Array();
-    
-    for (let i = 0; i < array.length; i++) {
-        compGraph.ExecuteNode(array[i], (value) => {
-            //console.log('array[i]   ' + JSON.stringify(array[i]) );
-            var compSections = getSection(data, array[i].name);
+    const comp_result = array.map((component) => {
+        compGraph.ExecuteNode(component, (value) => {
+            console.log('array[i]   ' + JSON.stringify(component));
+            var compSections = getSection(data, component.name);
             let sectionGraph = new gp(compSections);
-            //console.log('sectionGraph   ' + JSON.stringify(sectionGraph) );
+            // console.log('sectionGraph   ' + JSON.stringify(sectionGraph) );
             //creates instances of node class with all properties except for the parents
             sectionGraph.createNodes();
             //sets the parents for each node
             sectionGraph.SetNodeParents();
-            //console.log("nodelist :",Graph.NodeList);
+            // console.log("nodelist :",sectionGraph.NodeList);
             //gets the roots index
             let sectionRoots = sectionGraph.FindRoots();
-            //console.log('sectionRoots        ' + JSON.stringify(sectionRoots) );
-            SectionExecutor(sectionRoots, compSections, sectionGraph).then((value) => {
+            console.log('sectionRoots        ' + JSON.stringify(sectionRoots));
+           SectionExecutor(sectionRoots, compSections, sectionGraph).then((value) => {
                 console.log('return from section executor promise   ' + value);
-                compGraph.ReleaseParent(array[i]);
-                subArray = compGraph.ShowSuccessors(array[i]);
+                compGraph.ReleaseParent(component);
+                subArray = compGraph.ShowSuccessors(component);
                 if (subArray.length != 0) {
                     console.log('Going to next component ' + subArray[0].name);
                     //console.log('Dependants tasks of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
-                    Executor(subArray);
+                    //await(Executor(subArray));
+                    Executor(subArray)
                 } else {
-                    return
+                    return 
                 }
 
             })
         })
+    })
+    Promise.all(comp_result).then((values) =>
+    {
+       return values
     }
+        )
+
 }
 
-SectionExecutor = function (sectionArray, compSections, sectionGraph) {
-    return new Promise((resolve, reject) => {
+SectionExecutor = async function (sectionArray, compSections, sectionGraph) {
+   // return new Promise((resolve, reject) => {
         let subArray = new Array();
-        console.log('getting inside SectionExecutor    ' + sectionArray[0].name);
-        let ress;
-        for (let i = 0; i < sectionArray.length; i++) {
-            console.log('getting inside SectionExecutor  inside loop  ' + i + ' >> ' + sectionArray[i].name);
-            sectionGraph.ExecuteNode(sectionArray[i], (value) => {
-                console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ' + sectionArray[i].name);
-                var secDesignations = getDesignation(compSections, sectionArray[i].name);
+        // console.log('getting inside SectionExecutor    ' + sectionArray[0].name);
+
+        let section_result = sectionArray.map((section) => {
+            // console.log('getting inside SectionExecutor  inside loop  ' + i + ' >> ' + sectionArray[i].name);
+            sectionGraph.ExecuteNode(section, (value) => {
+                //  console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ' + sectionArray[i].name);
+                var secDesignations = getDesignation(compSections, section.name);
                 let designationGraph = new gp(secDesignations);
                 designationGraph.createNodes();
                 designationGraph.SetNodeParents();
                 let designationRoot = designationGraph.FindRoots();
-                console.log('designationRoots       ' + JSON.stringify(designationRoot));
-                DesignationExecutor(designationRoot, secDesignations, designationGraph).then((value) => {
+                //  console.log('designationRoots       ' + JSON.stringify(designationRoot));
+              DesignationExecutor(designationRoot, secDesignations, designationGraph).then((value) => {
                     console.log('return from designation executor promise   ' + value);
-                    
-                    sectionGraph.ReleaseParent(sectionArray[i]);
-                    subArray = sectionGraph.ShowSuccessors(sectionArray[i]);
+
+                    sectionGraph.ReleaseParent(section);
+                    subArray = sectionGraph.ShowSuccessors(section);
                     if (subArray.length != 0) {
                         console.log('Going to next section ' + subArray[0].name);
                         //console.log('Dependants sections of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
-                        SectionExecutor(subArray, compSections, sectionGraph).then((value) => {
-                            resolve('we are done 1')
-                        })
+                       // return(await(SectionExecutor(subArray, compSections, sectionGraph)))
+                       SectionExecutor(subArray, compSections, sectionGraph)
                     } else {
-                        console.log('before resolve   ' + sectionArray.length);
-                        //resolve('section done ! ' + sectionArray[i].name )
-                        if(i==sectionArray.length - 1){
-                            resolve('we are done 2')
-                        }
+                        new Promise(resolve => {
+                            resolve("\t\t This is first promise");
+                            
+                        });
                     }
-                    
                 })
             })
+        })
+        Promise.all(section_result).then((values) =>
+        {
+            new Promise(resolve => {
+                resolve(values);
+                
+            });
         }
-    });
+            )
+    
+  //  });
 }
 
 
-
-DesignationExecutor = function (designationArray, secDesignations, designationGraph) {
+/* 
+async function DesignationExecutor (designationArray, secDesignations, designationGraph) {
     return new Promise((resolve, reject) => {
         let subArray = new Array();
-        console.log('getting inside DesignationExecutor   ' + designationArray.length);
+        
+       // console.log('getting inside DesignationExecutor   ' + designationArray.length);
         for (let i = 0; i < designationArray.length; i++) {
-            console.log('getting inside designationExecutor  inside loop  ' + i);
+         //   console.log('getting inside designationExecutor  inside loop  ' + i);
             designationGraph.ExecuteNode(designationArray[i], (value) => {
-                console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ' + designationArray[i].name);
+        //        console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ' + designationArray[i].name);
             })
         }
         console.log('before resolve   ' + designationArray[0].name);
         resolve('designation done ! ' + designationArray[0].name)
     });
-}
+} */
 
 
 
-
-
-
-function SectionExecutor1(sectionArray, compSections, sectionGraph) {
+async function SectionExecutor1(sectionArray, compSections, sectionGraph) {
     let subArray = new Array();
-    console.log('getting inside SectionExecutor    ' + sectionArray.length);
+    // console.log('getting inside SectionExecutor    ' + sectionArray.length);
     for (let i = 0; i < sectionArray.length; i++) {
-        console.log('getting inside SectionExecutor  inside loop  ' + i);
+        //  console.log('getting inside SectionExecutor  inside loop  ' + i);
         sectionGraph.ExecuteNode(sectionArray[i], (value) => {
-            console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ');
+            //  console.log('getting inside SectionExecutor  inside loop  !!!!!!!!!!!!!!!! ');
             var secDesignations = getDesignation(compSections, sectionArray[i].name);
             let designationGraph = new gp(secDesignations);
             designationGraph.createNodes();
@@ -176,13 +187,13 @@ function SectionExecutor1(sectionArray, compSections, sectionGraph) {
             DesignationExecutor(designationRoot, secDesignations, designationGraph)
             sectionGraph.ReleaseParent(sectionArray[i]);
             subArray = sectionGraph.ShowSuccessors(sectionArray[i]);
-            
+
             if (subArray.length != 0) {
-                console.log('Going to next section ' + subArray[0].name );
+                console.log('Going to next section ' + subArray[0].name);
                 //console.log('Dependants sections of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
                 SectionExecutor(subArray, compSections, sectionGraph);
-            }else{
-                return
+            } else {
+                return 
             }
         })
     }
@@ -201,7 +212,6 @@ function getDesignation(compSections, sectionKey) {
 }
 
 
-
 function getTask(secDesignations, designationKey) {
     let i = 0, found = false;
     while (i < secDesignations.length & !found) {
@@ -212,66 +222,140 @@ function getTask(secDesignations, designationKey) {
             i = i + 1;
         }
     }
-    console.log(' designation key =  ' + designationKey + ' and tasks[0].name = ' + JSON.stringify(secDesignations[i].tasks[0].name) );
+   // console.log(' designation key =  ' + designationKey + ' and tasks[0].name = ' + JSON.stringify(secDesignations[i].tasks[0].name));
     return secDesignations[i].tasks;
 }
 
-function DesignationExecutor(designationArray, secDesignations, designationGraph) {
-    let subArray = new Array();
-    for (let i = 0; i < designationArray.length; i++) {
-        designationGraph.ExecuteNode(designationArray[i], (value) => {
-            var designationTasks = getTask(secDesignations, designationArray[i].name);
-            let taskGraph = new gp(designationTasks);
-            taskGraph.createNodes();
-            taskGraph.SetNodeParents();
-            let taskRoot = taskGraph.FindRoots();
-            //TaskExecutor(taskRoot, designationTasks, taskGraph)
-            TaskExecutor2(taskRoot, designationTasks, taskGraph)
+DesignationExecutor= async function (designationArray, secDesignations, designationGraph) {
+    //return new Promise((resolve, reject) => {
+        let subArray = new Array();
+        let design_result = designationArray.map((designation) => {
+            designationGraph.ExecuteNode(designation, (value) => {
+                var designationTasks = getTask(secDesignations, designation.name);
+                let taskGraph = new gp(designationTasks);
+                taskGraph.createNodes();
+                taskGraph.SetNodeParents();
+                let taskRoot = taskGraph.FindRoots();
+               TaskExecutor(taskRoot, designationTasks, taskGraph).then((value) => {
+                    designationGraph.ReleaseParent(designation);
+                    subArray = designationGraph.ShowSuccessors(designation);
+                    if (subArray.length != 0) {
+                        console.log('Going to next designation ' + subArray[0].name);
+                        //console.log('Dependant designations of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
+                      //  await(DesignationExecutor(subArray, secDesignations, designationGraph));
+                     DesignationExecutor(subArray, secDesignations, designationGraph);
+                    } else {
+                        new Promise(resolve => {
+                            
+                            resolve("\t\t This is first promise");
+                          
+                        });
+                    }
+                })
+            })
 
-            process.exit()
-
-
-            designationGraph.ReleaseParent(designationArray[i]);
-            subArray = designationGraph.ShowSuccessors(designationArray[i]);
-            if (subArray.length != 0) {
-                console.log('Going to next designation ' + subArray[0].name );
-                //console.log('Dependant designations of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
-                DesignationExecutor(subArray,secDesignations, designationGraph);
-            }else{
-                return
-            }
         })
-    }
+        Promise.all(design_result).then((values) =>
+        {
+            new Promise(resolve => {
+                resolve(values);
+                
+            });
+        }
+            )
+    
+  //  })
+
 }
 
 
-function executeTask(task, designationTasks, taskGraph){
+executeTask = async function (task, designationTasks, taskGraph) {
     return taskGraph.ExecuteTaskNode(task, (value) => {
-        console.log(`${taskArray[i].name}  is now finished ms`); //+ JSON.stringify(array[i])
-        taskGraph.ReleaseParent(taskArray[i]);
+        console.log(`${task.name}  is now finished ms`); //+ JSON.stringify(array[i])
+        taskGraph.ReleaseParent(task);
         subArray = taskGraph.ShowSuccessors(taskArray[i]);
         resolve(subArray)
     })
 }
 
-function TaskExecutor2(taskArray, designationTasks, taskGraph):Pr {
+
+TaskExecutor2 = async function (taskArray, designationTasks, taskGraph) {
+   // new Promise((resolve, reject) => {
+if(taskArray !=undefined && taskArray!= null && taskArray.length>0){
+    console.log("ligne 285:"+JSON.stringify(taskArray))
     var task_result = taskArray.map((task) => {
-        executeTask(task).then((successors) => {
+        executeTask(task, designationTasks, taskGraph).then((successors) => {
             if (successors.length != 0) {
-                await TaskExecutor2(successors, designationTasks, taskGraph);
+              // await(TaskExecutor2(successors, designationTasks, taskGraph));
+             TaskExecutor2(successors, designationTasks, taskGraph)
+              
             } else {
-                resolve('tasks done');
+                new Promise(resolve => {
+                    resolve("values");
+                    
+                });
             }
         });
     });
 
-    const tasksresults = await Promise.all(task_result);
-    return tasksresults;
+    Promise.all(task_result).then(
+        values => {
+            new Promise(resolve => {
+                resolve(values);
+                
+            });
+        }
+    );
+    
+}else
+new Promise(resolve => {
+    resolve("values");
+    
+});
+      
+        
+        //  await(rou)
+
+   // });
+
 }
 
 
+///////////
+
+
+
+var p1 = new Promise((resolve, reject) => {
+    setTimeout(resolve, 1000, 'un');
+  });
+ 
+  var p3 = new Promise((resolve, reject) => {
+    
+    var p2 = new Promise((resolve, reject) => {
+        setTimeout(resolve, 2000, 'deux');
+      });
+
+      p2.then(v => {
+        setTimeout(resolve, 3000, 'trois'+ "-"+v);
+      })
+     
+  });
+  var p4 = new Promise((resolve, reject) => {
+    setTimeout(resolve, 4000, 'quatre');
+  });
+
+  
+ Promise.all([p1, p3, p4]).then(values => {
+    console.log(values);
+  }, reason => {
+    console.log(reason)
+  }); 
+  
+
+
+
 ///////////////
-Executor(compRoot);
+//Executor(compRoot);
 /* var myCallback = function(data) {
     console.log('got data: ');
   };
@@ -282,53 +366,36 @@ Executor(compRoot);
 ///////////////
 
 
-function TaskExecutor(taskArray, designationTasks, taskGraph) {
-    //tasks should be executed here .... 
 
+
+TaskExecutor= async function (taskArray, designationTasks, Graph) {
+    console.log("I entered TaskExecutor "+JSON.stringify(taskArray))
     let subArray = new Array();
-    for (let i = 0; i < taskArray.length; i++) {
-        console.log(`${taskArray[i].name} is now executing.`);
-        taskGraph.ExecuteTaskNode(taskArray[i])
-        console.log(`${taskArray[i].name}  is now finished ms`); //+ JSON.stringify(array[i])
-        taskGraph.ReleaseParent(taskArray[i]);
-        subArray = taskGraph.ShowSuccessors(taskArray[i]);
-
-        if (subArray.length != 0) {
-            console.log('Dependants tasks of ' + "\x1b[34m%s\x1b[0m", `${taskArray[i].name} are now being launched in parallel.`)
-            TaskExecutor(subArray, designationTasks, taskGraph);
-        } 
-    }
-
-
-    console.log('Task root name =  ' + JSON.stringify(taskArray) );
-
+    var results= taskArray.map((task) =>{
+        Graph.ExecuteNode(task, (value) => {
+            
+ 
+             Graph.ReleaseParent(task);
+             subArray = Graph.ShowSuccessors(task);
+             console.log("subArray "+JSON.stringify(subArray))
+             if (subArray.length != 0) {
+                 console.log('Dependants tasks of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
+                 TaskExecutor(subArray, designationTasks, Graph);
+             }
+             else {
+                console.log("subArray of task "+ task.name+" is empty");
+                new Promise(resolve => {
+                    resolve("task");
+                    
+                });;
+             }
+         })
+    });
+    Promise.all(results).then( values =>{
+       return  new Promise(resolve => {
+            console.log("task executor results done");
+            resolve(values);
+            
+        });
+    })
 }
-
-
-
-/* function TaskExecutor(taskArray, designationTasks) {
-    let subArray = new Array();
-    for (let i = 0; i < taskArray.length; i++) {
-        Graph.ExecuteNode(taskArray[i], (value) => {
-           let taskGraph = new gp(getTask(designationTasks, taskArray[i].name));
-           taskGraph.createNodes();
-           taskGraph.SetNodeParents();
-            let taskRoot = taskGraph.FindRoots();
-            TaskExecutor(taskRoot)
-
-            console.log('1       ' );
-            process.exit()
-
-
-            Graph.ReleaseParent(taskArray[i]);
-            subArray = Graph.ShowSuccessors(taskArray[i]);
-            if (subArray.length != 0) {
-                console.log('Dependants tasks of ' + "\x1b[34m%s\x1b[0m", `${value} are now being launched in parallel.`)
-                Executor(subArray);
-            }
-            else {
-                return;
-            }
-        })
-    }
-} */
