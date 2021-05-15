@@ -1,0 +1,180 @@
+{
+    "Components": [
+        {
+            "name": "Component1",
+            "sections": [
+                {
+                    "name": "Section1.1",
+                    "designations": [
+                        {
+                            "name": "Designation1.1.1",
+                            "tasks": [
+                                {
+                                    "name": "task1.1.1.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": [
+                                        1
+                                    ]
+                                },
+                                {
+                                    "name": "task1.1.1.2",
+                                    "status": "notstarted",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        },
+                        {
+                            "name": "Designation1.1.2",
+                            "tasks": [
+                                {
+                                    "name": "task1.1.2.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": [
+                                        1
+                                    ]
+                                },
+                                {
+                                    "name": "task1.1.2.2",
+                                    "status": "notstarted",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        }
+                    ],
+                    "children": [
+                       1
+                    ]
+                },
+                {
+                    "name": "Section1.2",
+                    "designations": [
+                        {
+                            "name": "Designation1.2.1",
+                            "tasks": [
+                                {
+                                    "name": "task1.2.1.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        }
+                    ],
+                    "children": []
+                },
+                {
+                    "name": "Section1.3",
+                    "designations": [
+                        {
+                            "name": "Designation1.3.1",
+                            "tasks": [
+                                {
+                                    "name": "task1.2.1.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        }
+                    ],
+                    "children": []
+                }
+            ],
+            "children": [
+                1
+            ]
+        },
+        {
+            "name": "Component2",
+            "sections": [
+                {
+                    "name": "Section2.1",
+                    "designations": [
+                        {
+                            "name": "Designation2.1.1",
+                            "tasks": [
+                                {
+                                    "name": "task2.1.1.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        }
+                    ],
+                    "children": [
+                        1
+                    ]
+                },
+                {
+                    "name": "Section2.2",
+                    "designations": [
+                        {
+                            "name": "Designation2.2.1",
+                            "tasks": [
+                                {
+                                    "name": "task2.2.1.1",
+                                    "status": "pending",
+                                    "locationDetails": {
+                                        "workflowId": "11",
+                                        "sectionId": "11",
+                                        "componentId": "11",
+                                        "model": "c220_m5"
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "children": []
+                        }
+                    ],
+                    "children": []
+                }
+            ],
+            "children": []
+        }
+    ]
+}
